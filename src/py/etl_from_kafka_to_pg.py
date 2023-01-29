@@ -206,21 +206,6 @@ if __name__ == "__main__":
     df_parse = parse_json_initial(df)
     print('df_parse is read from function parse_json_initial() -----------------------')
 
-    # sampleQuery = df.selectExpr("CAST(value AS STRING)").writeStream.format("console").option("truncate", False).start()
-    # sampleQuery = (
-    #     df_parse
-    #     .writeStream.format("console")
-    #     #.option("truncate", False)
-    #     .start()
-    #     )
-    # while sampleQuery.isActive:
-    #     print(f"query information: runId={sampleQuery.runId}, "
-    #         f"status is {sampleQuery.status}, "
-    #         f"recent progress={sampleQuery.recentProgress}")
-    #     sleep(5)
-    # sampleQuery.awaitTermination(150)
-    # sampleQuery.stop()
-
     # запускаем стриминг
     print('запускаем стриминг -------------------->')
     (
