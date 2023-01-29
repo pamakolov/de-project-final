@@ -87,9 +87,6 @@ def spark_init(test_name) -> SparkSession:
 # читаем сообщения из топика Kafka
 def read_stream(spark: SparkSession) -> DataFrame:
 
-    # определяем текущее время в UTC в миллисекундах
-    # current_timestamp_utc = int(round(datetime.utcnow().timestamp()))
-
     df = (
         spark
         .readStream
@@ -232,5 +229,5 @@ if __name__ == "__main__":
         #.trigger(processingTime="10 seconds")
         .foreachBatch(foreach_batch_function)
         .start()
-        .awaitTermination()
+        .awaitTermination(0.75*60*60) # listen for 45 mins
     )
