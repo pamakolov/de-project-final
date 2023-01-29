@@ -4,7 +4,7 @@
 
 ## Update - 2-я, обновленная версия
 
-Часть 1-2. Чтение из топика Kafka \ ETL из Postgresql в Vertica
+### Часть 1-2. Чтение из топика Kafka \ ETL из Postgresql в Vertica
 
 1. Разделил 1 прошлый даг на 2:
     - в первом даге читаем сообщения из Kafka и грузим в Postgresql
