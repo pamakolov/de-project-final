@@ -221,7 +221,7 @@ with DAG('2nd_data_loading_to_dwh',
         start_date=datetime(2022, 10, 1), 
         catchup=False,
         schedule_interval="@daily",
-        #max_active_runs=1,
+        max_active_runs=2,
         concurrency=10,
         #end_date=datetime(2022, 11, 30)
         ) as dag:

@@ -69,7 +69,7 @@ with DAG('1st_data_import_from_source',
         start_date=datetime(2022, 10, 1), 
         catchup=False, #True (прогон каждый день с 2022-10-01 до 2022-12-01)
         schedule_interval="@daily",
-        #max_active_runs=1,
+        max_active_runs=2,
         concurrency=10,
         #end_date=datetime(2022, 12, 1)
         ) as dag:
