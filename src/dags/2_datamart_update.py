@@ -32,56 +32,9 @@ def ddl_stg_currency():
     
     vertica_conn = vertica_python.connect(**conn_info)
     cur = vertica_conn.cursor()
-    cur.execute(
-                        """
-                        --- Создание таблицы
-                        CREATE TABLE if not exists UNKNOWNPAVELYANDEXRU__STAGING.currencies (
-                            ID IDENTITY(1,1) NOT null,
-                            object_id varchar ,
-                            object_type varchar ,
-                            sent_dttm  timestamp
-                            ,date_update timestamp
-                            ,currency_code integer
-                            ,currency_code_with integer
-                            ,currency_with_div float
-
-                            ----UNIQUE (object_id, object_type,sent_dttm,date_update,currency_code,currency_code_with,currency_with_div) ENABLED
-                        )
-                        order by sent_dttm, object_id
-                        segmented by hash(sent_dttm, object_id) all nodes
-                        PARTITION BY sent_dttm::date
-                        GROUP BY calendar_hierarchy_day(sent_dttm::date, 1, 1)
-                        ;
-
-                        --- Создание проекции
-                        CREATE PROJECTION IF NOT EXISTS UNKNOWNPAVELYANDEXRU__STAGING.currencies_dt
-                        (object_id,sent_dttm) AS
-                        
-                        SELECT object_id,sent_dttm
-                        FROM UNKNOWNPAVELYANDEXRU__STAGING.currencies
-                        ORDER BY sent_dttm
-                        ----SEGMENTED BY hash(sent_dttm,object_id) ALL NODES KSAFE 1
-                        ;
-
-                        --- Создание промежуточной таблицы RAW для избежания заливки дубликатов
-                        CREATE TABLE if not exists UNKNOWNPAVELYANDEXRU__STAGING.currencies_raw (
-                            ID IDENTITY(1,1) NOT null,
-                            object_id varchar ,
-                            object_type varchar ,
-                            sent_dttm  timestamp
-                            ,date_update timestamp
-                            ,currency_code integer
-                            ,currency_code_with integer
-                            ,currency_with_div float
-                        )
-                        order by sent_dttm, object_id
-                        segmented by hash(sent_dttm, object_id) all nodes
-                        PARTITION BY sent_dttm::date
-                        GROUP BY calendar_hierarchy_day(sent_dttm::date, 1, 1)
-                        ;
-
-                        """
-                    )
+    with open('/project/sql/vertica_stg_currency.sql') as f:
+        cur.execute(f.read())
+    
     vertica_conn.commit()
     vertica_conn.close()
 
@@ -92,66 +45,9 @@ def ddl_stg_transaction():
 
     vertica_conn = vertica_python.connect(**conn_info)
     cur = vertica_conn.cursor()
-    cur.execute(
-                        """
-                        --- Создание таблицы
-                        CREATE TABLE if not exists UNKNOWNPAVELYANDEXRU__STAGING.transactions (
-                            ID IDENTITY(1,1) NOT null,
-                            object_id varchar ,
-                            object_type varchar ,
-                            sent_dttm  timestamp
-                            ,operation_id varchar
-                            ,account_number_from int
-                            ,account_number_to int
-                            ,currency_code int
-                            ,country varchar
-                            ,status varchar
-                            ,transaction_type varchar
-                            ,amount int
-                            ,transaction_dt timestamp
-
-                            /*UNIQUE (object_id, object_type,sent_dttm,operation_id,account_number_from,account_number_to,currency_code,country,status,
-                            transaction_type,amount,transaction_dt) ENABLED*/
-                        )
-                            order by sent_dttm, object_id
-                            segmented by hash(sent_dttm, object_id) all nodes
-                            PARTITION BY sent_dttm::date
-                            GROUP BY calendar_hierarchy_day(sent_dttm::date, 1, 1)
-                            ;
-
-                        --- Создание проекции
-                        CREATE PROJECTION IF NOT EXISTS UNKNOWNPAVELYANDEXRU__STAGING.transactions_dt
-                        (object_id,sent_dttm) AS
-                        
-                        SELECT object_id,sent_dttm
-                        FROM UNKNOWNPAVELYANDEXRU__STAGING.transactions
-                        ORDER BY sent_dttm
-                        ----SEGMENTED BY hash(sent_dttm,object_id) ALL NODES KSAFE 1
-                        ;
-
-                        --- Создание таблицы таблицы RAW для избежания заливки дубликатов
-                        CREATE TABLE if not exists UNKNOWNPAVELYANDEXRU__STAGING.transactions_raw (
-                            ID IDENTITY(1,1) NOT null,
-                            object_id varchar ,
-                            object_type varchar ,
-                            sent_dttm  timestamp
-                            ,operation_id varchar
-                            ,account_number_from int
-                            ,account_number_to int
-                            ,currency_code int
-                            ,country varchar
-                            ,status varchar
-                            ,transaction_type varchar
-                            ,amount int
-                            ,transaction_dt timestamp
-                        )
-                            order by sent_dttm, object_id
-                            segmented by hash(sent_dttm, object_id) all nodes
-                            PARTITION BY sent_dttm::date
-                            GROUP BY calendar_hierarchy_day(sent_dttm::date, 1, 1)
-                            ;
-                        """
-                    )
+    with open('/project/sql/vertica_stg_transaction.sql') as f:
+        cur.execute(f.read())
+    
     vertica_conn.commit()
     vertica_conn.close()
 
@@ -373,7 +269,7 @@ with DAG('2nd_data_loading_to_dwh',
     
 
 
-start >> ExternalTaskSensor >> _print_execution_date >> [ ddl_stg_currency, ddl_stg_transaction]
+start >> _print_execution_date >> ExternalTaskSensor >> [ ddl_stg_currency, ddl_stg_transaction]
 [ddl_stg_currency] >> currency_to_vertica
 [ddl_stg_transaction] >> transaction_to_vertica
 [currency_to_vertica , transaction_to_vertica] >> ddl_dwh_global_metrics >> loading_dwh_global_metrics >> end
